@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="Numair/Numair.vcxproj" Id="08291135-92a0-4256-b699-cc60e9c465ae" />
+</Solution>
