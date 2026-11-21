@@ -6,6 +6,8 @@
 #include"clsListUsersScreen.h"
 #include"clsShowDeleteUser.h"
 #include"clsUpdateUserScreen.h"
+#include"clsFindUserScreen.h"
+#include"clsAddUserScreen.h"
 
 using namespace std;
 
@@ -40,8 +42,8 @@ private:
 
     static void _ShowAddNewUserScreen()
     {
-        cout << "\nAdd New User Screen Will Be Here.\n";
-
+       // cout << "\nAdd New User Screen Will Be Here.\n";
+        clsAddUserScreen::ShowAddUser();
     }
 
     static void _ShowDeleteUserScreen()
@@ -58,7 +60,8 @@ private:
 
     static void _ShowFindUserScreen()
     {
-        cout << "\nFind User Screen Will Be Here.\n";
+        //cout << "\nFind User Screen Will Be Here.\n";
+        clsFindUserScreen::ShowFindUser();
     }
 
 
@@ -116,15 +119,16 @@ private:
 
     }
 
-
-
 public:
-
 
     static void ShowManageUsersMenue()
     {
 
         system("cls");
+        if (!CheckAccessRights(clsUser::enpermissions::enManageUsers))
+        {
+            return;
+        }
         _DrawScreenHeader("\t Manage Users Screen");
 
         cout << setw(37) << left << "" << "===========================================\n";

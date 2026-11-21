@@ -37,6 +37,7 @@ public:
 
     static void ShowWithdrawScreen()
     {
+
         _DrawScreenHeader("\t   Withdraw Screen");
 
         string AccountNumber = _ReadAccountNumber();
@@ -48,7 +49,7 @@ public:
             AccountNumber = _ReadAccountNumber();
         }
 
-        clsBankClient Client1 = clsBankClient::find
+        clsBankClient Client1 = clsBankClient::Find(AccountNumber);
         _PrintClient(Client1);
 
 
@@ -62,18 +63,9 @@ public:
 
         if (Answer == 'Y' || Answer == 'y')
         {
-            if (Client1.Withdraw(Amount))
-            {
-                cout << "\nAmount Withdrew Successfully.\n";
-                cout << "\nNew Balance Is: " << Client1.AccountBalance;
-            }
-            else
-            {
-                cout << "\nCannot withdraw, Insuffecient Balance!\n";
-                cout << "\nAmout to withdraw is: " << Amount;
-                cout << "\nYour Balance is: " << Client1.AccountBalance;
-
-            }
+            Client1.Withdraw(Amount);
+            cout << "\nAmount Withdrew Successfully.\n";
+            cout << "\nNew Balance Is: " << Client1.AccountBalance;
         }
         else
         {

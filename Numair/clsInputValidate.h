@@ -78,8 +78,7 @@ public:
 
 	static string ReadString(string word)
 	{
-		 
-		cout << word<<endl;
+		
 		cin >> word;
 		return word;
 	}

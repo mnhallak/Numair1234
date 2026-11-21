@@ -5,6 +5,9 @@
 #include "clsString.h"
 #include <vector>
 #include <fstream>
+#include"clsDate.h"
+#include"clsUser.h"
+#include"clsBankClient.h"
 
 using namespace std;
 class clsBankClient : public clsPerson
@@ -32,6 +35,8 @@ private:
 
     }
 
+  
+
     static string _ConverClientObjectToLine(clsBankClient Client, string Seperator = "#//#")
     {
 
@@ -43,7 +48,6 @@ private:
         stClientRecord += Client.AccountNumber() + Seperator;
         stClientRecord += Client.PinCode + Seperator;
         stClientRecord += to_string(Client.AccountBalance);
-
         return stClientRecord;
 
     }
@@ -76,6 +80,19 @@ private:
 
         return vClients;
 
+    }
+
+    string _ConvertTransferDatatoLine(double amount, clsBankClient toClient, string sep = "#//#")
+    {
+        string transferdataline = "";
+        transferdataline = transferdataline + clsDate::DateToString(clsDate()) + sep;
+        transferdataline = transferdataline + AccountNumber() + sep;
+        transferdataline = transferdataline + toClient.AccountNumber() + sep;
+        transferdataline = transferdataline + to_string(amount) + sep;
+        transferdataline = transferdataline + to_string(AccountBalance) + sep;
+        transferdataline = transferdataline + to_string(toClient.AccountBalance) + sep;
+        transferdataline = transferdataline + User.UserName + sep;
+        return transferdataline;
     }
 
     static void _SaveCleintsDataToFile(vector <clsBankClient> vClients)
@@ -154,7 +171,7 @@ private:
 
 public:
 
-
+    
     clsBankClient(enMode Mode, string FirstName, string LastName,
         string Email, string Phone, string AccountNumber, string PinCode,
         float AccountBalance) :
@@ -204,22 +221,6 @@ public:
         return _AccountBalance;
     }
     __declspec(property(get = GetAccountBalance, put = SetAccountBalance)) float AccountBalance;
-
-    /* void Print()
-    {
-        cout << "\nClient Card:";
-        cout << "\n___________________";
-        cout << "\nFirstName   : " << FirstName;
-        cout << "\nLastName    : " << LastName;
-        cout << "\nFull Name   : " << FullName();
-        cout << "\nEmail       : " << Email;
-        cout << "\nPhone       : " << Phone;
-        cout << "\nAcc. Number : " << _AccountNumber;
-        cout << "\nPassword    : " << _PinCode;
-        cout << "\nBalance     : " << _AccountBalance;
-        cout << "\n___________________\n";
-
-    }*/
 
     static clsBankClient Find(string AccountNumber)
     {
@@ -369,6 +370,100 @@ public:
         return _LoadClientsDataFromFile();
     }
 
+     void Deposit(double amount)
+    {
+        AccountBalance = AccountBalance + amount;
+        Save();
+    }
+
+     void Withdraw(double amount)
+    {
+        AccountBalance = AccountBalance - amount;
+        Save();
+    }
+
+     static double GetTotalBalances()
+     {
+         double sum = 0;
+         vector<clsBankClient> vClient = _LoadClientsDataFromFile();
+         for (clsBankClient C: vClient)
+         {
+             sum = sum + C.AccountBalance;
+         }
+         return sum;
+     }
+
+     bool Transfer(double amount, clsBankClient & toClient)
+     {
+
+         if (amount > AccountBalance)
+         {
+             return false;
+         }
+         else
+         {
+             Withdraw(amount);
+             toClient.Deposit (amount);
+             SaveTransferDatatoFile(amount, toClient);
+             return true;
+         }
+     }
+
+    
+
+     void SaveTransferDatatoFile(double amount, clsBankClient toClient)
+     {
+         fstream myfile;
+         string transferdataline = _ConvertTransferDatatoLine(amount, toClient);
+         myfile.open("TransferLogFile.txt", ios::out | ios::app);
+         if (myfile.is_open())
+         {
+             myfile << transferdataline << endl;
+             myfile.close();
+         }
+     }
+
+
+     struct stTransferDataLog {
+         string TransferDate; string sourceaccountnumber; string destinationaccountnumber; double amount; double sourcebalance;
+         double destinationbalance; string User;
+     };
+
+
+     static stTransferDataLog ConvertTransferLogtoRecord(string line, string sep = "#//#")
+     {
+         stTransferDataLog TransferDataLog;
+         vector<string> vTransferLogs = clsString::Split(line, sep);
+         TransferDataLog.TransferDate = vTransferLogs[0];
+         TransferDataLog.sourceaccountnumber = vTransferLogs[1];
+         TransferDataLog.destinationaccountnumber = vTransferLogs[2];
+         TransferDataLog.amount = stod(vTransferLogs[3]);
+         TransferDataLog.sourcebalance = stod(vTransferLogs[4]);
+         TransferDataLog.destinationbalance = stod(vTransferLogs[5]);
+         TransferDataLog.User = vTransferLogs[6];
+         return TransferDataLog;
+     }
+    
+
+     static vector<stTransferDataLog> LoadTransferLogsFromFile()
+     {
+         fstream myfile;
+         stTransferDataLog TransferDataLog;
+         string line;
+         vector<stTransferDataLog> vTransferLogs;
+         myfile.open("TransferLogFile.txt", ios::in);
+         if (myfile.is_open())
+         {
+             while (getline(myfile, line))
+             {
+                 TransferDataLog = ConvertTransferLogtoRecord(line);
+                 vTransferLogs.push_back(TransferDataLog);
+             }
+             myfile.close();
+             return vTransferLogs;
+         }
+     }
 
 };
+
 

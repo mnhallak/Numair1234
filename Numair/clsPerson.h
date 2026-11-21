@@ -1,9 +1,11 @@
 #pragma once
 #include <iostream>
 #include <string>
+#include "AbstractClass.h"
+
 using namespace std;
 
-class clsPerson
+class clsPerson: public AbstractClass
 {
 
 private:
@@ -91,6 +93,11 @@ public:
         cout << "\nEmail    : " << _Email;
         cout << "\nPhone    : " << _Phone;
         cout << "\n___________________\n";
+
+    }
+
+    virtual void SendEmail(string title, string body)
+    {
 
     }
 

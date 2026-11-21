@@ -5,12 +5,16 @@
 #include "clsString.h"
 #include <vector>
 #include <fstream>
+#include"clsDate.h"
+#include"User.h"
+#include"clsUtil.h"
 
 using namespace std;
+
 class clsUser : public clsPerson
 {
 private:
-
+   
     enum enMode { EmptyMode = 0, UpdateMode = 1, AddNewMode = 2 };
     enMode _Mode;
     string _UserName;
@@ -25,7 +29,7 @@ private:
         vUserData = clsString::Split(Line, Seperator);
 
         return clsUser(enMode::UpdateMode, vUserData[0], vUserData[1], vUserData[2],
-            vUserData[3], vUserData[4], vUserData[5], stoi(vUserData[6]));
+            vUserData[3], vUserData[4], clsUtil::DecryptText(vUserData[5]) , stoi(vUserData[6]));
 
     }
 
@@ -38,12 +42,13 @@ private:
         UserRecord += User.Email + Seperator;
         UserRecord += User.Phone + Seperator;
         UserRecord += User.UserName + Seperator;
-        UserRecord += User.Password + Seperator;
+        UserRecord +=  clsUtil::EncryptText(User.Password) + Seperator;
         UserRecord += to_string(User.Permissions);
 
         return UserRecord;
 
     }
+
 
     static  vector <clsUser> _LoadUsersDataFromFile()
     {
@@ -149,8 +154,42 @@ private:
         return clsUser(enMode::EmptyMode, "", "", "", "", "", "", 0);
     }
 
+     string _ConvertUserRecordtoLine(string sep = "#//#")
+    {
+        string userrecord = "";
+        userrecord = userrecord + clsDate::DateToString(clsDate()) + sep;
+        userrecord = userrecord + UserName + sep;
+        userrecord = userrecord + clsUtil::EncryptText(Password)+ sep;
+        userrecord = userrecord + to_string(Permissions) + sep;
+        return userrecord;
+
+    }
+     
+
 public:
 
+     struct stLoginRecord
+    {
+        string date;
+        string username;
+        string password;
+        short permission;
+    };
+
+    static stLoginRecord ConvertLoginRecordLinetoRecord(string line, string sep = "#//#")
+    {
+        vector<string>vRecord = clsString::Split(line, sep);
+        stLoginRecord LoginRecord;
+        LoginRecord.date = vRecord[0];
+        LoginRecord.username = vRecord[1];
+        LoginRecord.password = clsUtil::DecryptText(vRecord[2]);
+        LoginRecord.permission = stoi(vRecord[3]);
+        return LoginRecord;
+    }
+
+    enum enpermissions { enAll=-1, enListClient = 1, enAddClient = 2, enDeleteClient = 4, enUpdateClient = 8, 
+        enFindClient = 16, enTransaction = 32, enManageUsers = 64, enLogInRegister=128 };
+    
     clsUser(enMode Mode, string FirstName, string LastName,
         string Email, string Phone, string UserName, string Password,
         int Permissions) :
@@ -342,7 +381,54 @@ public:
         return _LoadUsersDataFromFile();
     }
 
+     bool CheckAccessPermission(enpermissions permission)
+    {
+         if (this->Permissions == enpermissions::enAll)
+         {
+             return true;
+         }
+         if (this->Permissions & permission == permission)
+         {
+             return true;
+         }
+         else
+         {
+             return false;
+         }
+    }
 
+     void ShowSaveLogIn()
+     {
+         fstream myfile;
+         string dataline = _ConvertUserRecordtoLine();
+         myfile.open("LogInRegister.txt", ios::out | ios::app);
+         if (myfile.is_open())
+         {
+             myfile << dataline << endl;
+             myfile.close();
+         }
+     }
+
+    
+
+     static vector<stLoginRecord> GetLogInRegisterLine()
+     {
+         string line;
+         vector < stLoginRecord> vLoginRegister;
+         stLoginRecord stRecord;
+         fstream myfile;
+         myfile.open("LogInRegister.txt", ios::in);
+         if (myfile.is_open())
+         {
+             while (getline(myfile, line))
+             {
+                 stRecord = ConvertLoginRecordLinetoRecord(line);
+                 vLoginRegister.push_back(stRecord);
+             }
+             myfile.close();
+         }
+         return vLoginRegister;
+     }
 };
 
 

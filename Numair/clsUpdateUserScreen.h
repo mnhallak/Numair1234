@@ -10,15 +10,14 @@ class clsUpdateUserScreen: protected clsScreen
 {
 private:
 
-	static clsUser _ReadUserInfo(clsUser user)
+	static clsUser _ReadUserInfo(clsUser &user)
 	{
 		user.FirstName = clsInputValidate::ReadString("Please enter First Name: ");
 		user.LastName = clsInputValidate::ReadString("Please enter Last Name: ");
 		user.Email = clsInputValidate::ReadString("Please enter Email: ");
 		user.Phone = clsInputValidate::ReadString("Please enter Phone: ");
-		user.UserName = clsInputValidate::ReadString("Please enter UserName: ");
 		user.Password = clsInputValidate::ReadString("Please enter Password: ");
-		user.Permissions = clsInputValidate::ReadIntNumber("Please enter Permissions: ");
+		user.Permissions = _GetPermissionsForUser();
 		return user;
 	}
 
@@ -34,7 +33,69 @@ private:
 		cout << "\nPassword: " << user.Password;
 		cout << "\nPermissions: " << user.Permissions;
 	}
-
+	static int _GetPermissionsForUser()
+	{
+		cout << "\nDo you want give a permission to this user for all" << endl;
+		int permission = 0;
+		char ch = 'N';
+		cin >> ch;
+		if (toupper(ch) == 'Y')
+		{
+			return -1;
+		}
+		else if (toupper(ch) == 'N')
+		{
+			cout << "Do you want give a permission to this user for List Client" << endl;
+			cin >> ch;
+			if (toupper(ch) == 'Y')
+			{
+				permission = permission + clsUser::enpermissions::enListClient;
+			}
+			cout << "Do you want give a permission to this user for Add Client" << endl;
+			cin >> ch;
+			if (toupper(ch) == 'Y')
+			{
+				permission = permission + clsUser::enpermissions::enAddClient;
+			}
+			cout << "Do you want give a permission to this user for Delete Client" << endl;
+			cin >> ch;
+			if (toupper(ch) == 'Y')
+			{
+				permission = permission + clsUser::enpermissions::enDeleteClient;
+			}
+			cout << "Do you want give a permission to this user for Update client" << endl;
+			cin >> ch;
+			if (toupper(ch) == 'Y')
+			{
+				permission = permission + clsUser::enpermissions::enUpdateClient;
+			}
+			cout << "Do you want give a permission to this user for Find client" << endl;
+			cin >> ch;
+			if (toupper(ch) == 'Y')
+			{
+				permission = permission + clsUser::enpermissions::enFindClient;
+			}
+			cout << "Do you want give a permission to this user for Transaction" << endl;
+			cin >> ch;
+			if (toupper(ch) == 'Y')
+			{
+				permission = permission + clsUser::enpermissions::enTransaction;
+			}
+			cout << "Do you want give a permission to this user for manage users" << endl;
+			cin >> ch;
+			if (toupper(ch) == 'Y')
+			{
+				permission = permission + clsUser::enpermissions::enManageUsers;
+			}
+			cout << "Do you want give a permission to this user for log in register User" << endl;
+			cin >> ch;
+			if (toupper(ch) == 'Y')
+			{
+				permission = permission + clsUser::enpermissions::enLogInRegister;
+			}
+		}
+		return permission;
+	}
 
 public:
 
@@ -42,26 +103,35 @@ public:
 	{
 		clsScreen::_DrawScreenHeader("Update User Screen");
 		string  username = "";
-		username=clsInputValidate::ReadString("Please enter UserName: ");
+		username = clsInputValidate::ReadString("Please enter UserName: ");
 		while (!clsUser::IsUserExist(username))
 		{
 			cout << "UserName is not found, please enter another UserName: " << endl;
 			username = clsInputValidate::ReadString("Please enter UserName: ");
 		}
-        clsUser User = clsUser::Find(username);
-        _PrintUser(User);
+		clsUser User = clsUser::Find(username);
+		_PrintUser(User);
 		cout << "\nAre you sure you want to update this user y/n? ";
 		char ch = 'N';
 		cin >> ch;
-		if (toupper(ch == 'Y'))
+		if (toupper(ch) == 'Y')
 		{
 			_ReadUserInfo(User);
-			User.Save();
-			cout << "\nUser Updated Successfully :-)\n";
 		}
-		else
+		clsUser::enSaveResults saveresult = User.Save();
+		switch (saveresult)
 		{
-			cout << "\nUpdate Canceled :-)\n";
+		case(clsUser::enSaveResults::svFaildUserExists):
+		{
+			cout << "user is not updated" << endl;
+			break;
+		}
+		case(clsUser::enSaveResults::svSucceeded):
+		{
+			cout << "user is updated" << endl;
+			_PrintUser(User);
+			break;
+		}
 		}
 	}
 };

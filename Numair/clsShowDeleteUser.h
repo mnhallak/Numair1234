@@ -47,7 +47,8 @@ public:
 		{
 			if (user.Delete())
 			{
-				cout << "User is deleted successfully." << endl;
+				_PrintUser(user);
+				cout << "\nUser is deleted successfully." << endl;
 			}
 		}
 		else
